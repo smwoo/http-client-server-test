@@ -18,6 +18,52 @@ use Psr\Http\Message\StreamInterface as StreamInterface;
  */
 class Message implements MessageInterface
 {
+    private $protocolVersion;
+    private $headers;
+    private $messageBody;
+
+    private function is_assoc(array $array)
+    {
+        // Keys of the array
+        $keys = array_keys($array);
+
+        // If the array keys of the keys match the keys, then the array must
+        // not be associative (e.g. the keys array looked like {0:0, 1:1...}).
+        return array_keys($keys) !== $keys;
+    }
+
+    function __construct(array $inputheaders, string $body, string $version){
+
+        // check if message headers are valid
+        if(!is_assoc($inputheaders)){
+            throw new RuntimeException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or ann array of strings");
+        }
+        else{
+            $keys = array_keys($inputheaders);
+            foreach($keys as $key){
+                $keyvalue = $inputheaders[$key];
+                if(!is_array($keyvalue)){
+                    if(!is_string($keyvalue)){
+                        throw new RuntimeException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or ann array of strings");
+                    }
+                }
+                else{
+                    foreach($keyvalue as $arrayvalue){
+                        if(!is_string($keyvalue)){
+                            throw new RuntimeException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or ann array of strings");
+                        }
+                    }
+                }
+            }
+        }
+
+        $streambody = new StreamInterface($body);
+
+        $this->$headers = $inputheaders;
+        $this->$body = $streambody;
+        $this->$protocolVersion = $version;
+    }
+
     /**
      * Retrieves the HTTP protocol version as a string.
      *
@@ -27,7 +73,7 @@ class Message implements MessageInterface
      */
     public function getProtocolVersion()
     {
-
+        return $this->protocolVersion;
     }
 
     /**
@@ -45,7 +91,8 @@ class Message implements MessageInterface
      */
     public function withProtocolVersion($version)
     {
-
+        $response = new Message($this->headers, $this->messageBody, $version);
+        return $response;
     }
 
     /**
@@ -75,7 +122,7 @@ class Message implements MessageInterface
      */
     public function getHeaders()
     {
-
+        return $this->$headers;
     }
 
     /**
@@ -88,7 +135,13 @@ class Message implements MessageInterface
      */
     public function hasHeader($name)
     {
-
+        $keys = array_keys($this->headers);
+        foreach($keys as $key){
+            if(strtolower($name) == strtolower($key)){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -107,7 +160,14 @@ class Message implements MessageInterface
      */
     public function getHeader($name)
     {
+        $keys = array_keys($this->headers);
+        foreach($keys as $key){
+            if(strtolower($name) == strtolower($key)){
+                return $this->headers[$key];
+            }
+        }
 
+        return array();
     }
 
     /**
@@ -131,7 +191,14 @@ class Message implements MessageInterface
      */
     public function getHeaderLine($name)
     {
+        $keys = array_keys($this->headers);
+        foreach($keys as $key){
+            if(strtolower($name) == strtolower($key)){
+                return implode(",", $this->headers[$key]);
+            }
+        }
 
+        return "";
     }
 
     /**
@@ -151,7 +218,9 @@ class Message implements MessageInterface
      */
     public function withHeader($name, $value)
     {
-
+        $newheader = array( $name => $value);
+        $response = new Message($newheader, $this->messageBody, $this->version);
+        return $response;
     }
 
     /**
@@ -173,7 +242,10 @@ class Message implements MessageInterface
      */
     public function withAddedHeader($name, $value)
     {
-
+        $newheader = $this->headers;
+        $newheader[$name] = $value;
+        $response = new Message($newheader, $this->messageBody, $this->version);
+        return $response;
     }
 
     /**
@@ -190,7 +262,10 @@ class Message implements MessageInterface
      */
     public function withoutHeader($name)
     {
-
+        $newheader = $this->headers;
+        unset($newheader[$name]);
+        $response = new Message($newheader, $this->messageBody, $this->version);
+        return $response;
     }
 
     /**
@@ -200,7 +275,9 @@ class Message implements MessageInterface
      */
     public function getBody()
     {
-
+        $body = (string) $this->$messageBody;
+        $response = new Message($this->headers, $body, $this->version);
+        return $response;
     }
 
     /**
@@ -218,6 +295,8 @@ class Message implements MessageInterface
      */
     public function withBody(StreamInterface $body)
     {
-
+        $body = (string) $this->$messageBody;
+        $response = new Message($this->headers, $body, $this->version);
+        return $response;
     }
 }

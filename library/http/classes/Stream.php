@@ -12,6 +12,20 @@ use \Psr\Http\Message\StreamInterface as StreamInterface;
  */
 class Stream implements StreamInterface
 {
+    private $streampointer;
+    private $readable;
+    private $writeable;
+    private $seekable;
+
+    function __construct($body, $isreadable=true, $iswriteable=true, $isseekable=true){
+        $this->$streampointer = fopen('php://memory', 'r+');
+        fwrite($this->$streampointer, $body);
+        rewind($this->$streampointer);
+        $this->$readable = $isreadable;
+        $this->$writeable = $iswriteable;
+        $this->$seekable = $isseekable;
+    }
+
     /**
      * Reads all data from the stream into a string, from the beginning to end.
      *
@@ -28,7 +42,16 @@ class Stream implements StreamInterface
      */
     public function __toString()
     {
+        $this->checkClosed();
 
+        if(!$this->$readable){
+            throw new Exception("stream is not readable");
+        }
+
+        $offset = ftell($this->$streampointer);
+        fseek($this->$streampointer, 0);
+        $stringBody = stream_get_contents($this->$streampointer);
+        return $stringBody;
     }
 
     /**
@@ -38,7 +61,9 @@ class Stream implements StreamInterface
      */
     public function close()
     {
+        $this->checkClosed();
 
+        fclose($this->detach());
     }
 
     /**
@@ -50,7 +75,20 @@ class Stream implements StreamInterface
      */
     public function detach()
     {
+        $this->checkClosed();
 
+        $detachedpointer = $this->$streampointer;
+        $this->$streampointer = null;
+        return $detachedpointer;
+    }
+
+    /**
+     * checks if stream is closed and throws error if it is
+     */
+    private function checkClosed() {
+      if (!isset($this->file_handler)) {
+        throw new RuntimeException("Stream is closed.");
+      }
     }
 
     /**
@@ -60,7 +98,11 @@ class Stream implements StreamInterface
      */
     public function getSize()
     {
+        $this->checkClosed();
 
+        $stat = fstat($this->$streampointer);
+        $size = $stat['size'];
+        return $size;
     }
 
     /**
@@ -71,7 +113,15 @@ class Stream implements StreamInterface
      */
     public function tell()
     {
+        $this->checkClosed();
 
+        $position = ftell($this->$streampointer);
+        if($position == false){
+            throw new RuntimeException();
+        }
+        else{
+            return $position;
+        }
     }
 
     /**
@@ -81,7 +131,9 @@ class Stream implements StreamInterface
      */
     public function eof()
     {
+        $this->checkClosed();
 
+        return feof($this->$streampointer);
     }
 
     /**
@@ -91,7 +143,9 @@ class Stream implements StreamInterface
      */
     public function isSeekable()
     {
+        $this->checkClosed();
 
+        return $this->$seekable;
     }
 
     /**
@@ -108,7 +162,15 @@ class Stream implements StreamInterface
      */
     public function seek($offset, $whence = SEEK_SET)
     {
+        $this->checkClosed();
 
+        if(!$this->$seekable){
+            throw new Exception("steam is not seekable");
+        }
+
+        if(fseek($this->$streampointer, $offset, $whence) == -1){
+            throw new RuntimeException();
+        }
     }
 
     /**
@@ -123,7 +185,9 @@ class Stream implements StreamInterface
      */
     public function rewind()
     {
+        $this->checkClosed();
 
+        this->seek(0);
     }
 
     /**
@@ -133,7 +197,9 @@ class Stream implements StreamInterface
      */
     public function isWritable()
     {
+        $this->checkClosed();
 
+        return $this->$writeable;
     }
 
     /**
@@ -145,7 +211,19 @@ class Stream implements StreamInterface
      */
     public function write($string)
     {
+        $this->checkClosed();
 
+        if(!$this->$writeable){
+            throw new Exception('not a writeable stream');
+        }
+
+        $result = fwrite($this->$streampointer, $string);
+        if($result == false){
+            throw new RuntimeException();
+        }
+        else{
+            return $result;
+        }
     }
 
     /**
@@ -155,7 +233,9 @@ class Stream implements StreamInterface
      */
     public function isReadable()
     {
+        $this->checkClosed();
 
+        return $this->$readable;
     }
 
     /**
@@ -170,7 +250,19 @@ class Stream implements StreamInterface
      */
     public function read($length)
     {
+        $this->checkClosed();
 
+        if(!$this->readable){
+            throw new Exception("not a readable stream");
+        }
+
+        $readstring = fread($this->$streampointer, $length);
+        if($readstring == false){
+            throw new RuntimeException();
+        }
+        else{
+            return $readstring;
+        }
     }
 
     /**
@@ -182,7 +274,19 @@ class Stream implements StreamInterface
      */
     public function getContents()
     {
+        $this->checkClosed();
 
+        if(!$this->$readable){
+            throw new Exception("not a readable stream");
+        }
+
+        $readstring = stream_get_contents($this->$streampointer);
+        if($readstring == false){
+            throw new RuntimeException();
+        }
+        else{
+            return $readstring;
+        }
     }
 
     /**
@@ -199,6 +303,19 @@ class Stream implements StreamInterface
      */
     public function getMetadata($key = null)
     {
-        
+        $this->checkClosed();
+
+        $meta = stream_get_meta_data($this->$streampointer);
+        if($key == null){
+            return $meta;
+        }
+        else{
+            if(array_key_exists($key, $meta)){
+                return $meta[$key];
+            }
+            else{
+                return null;
+            }
+        }
     }
 }
