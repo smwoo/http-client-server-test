@@ -42,10 +42,8 @@ class Stream implements StreamInterface
      */
     public function __toString()
     {
-        $this->checkClosed();
-
         if(!$this->readable){
-            throw new Exception("stream is not readable");
+            return "";
         }
 
         $offset = ftell($this->streampointer);
@@ -79,6 +77,9 @@ class Stream implements StreamInterface
 
         $detachedpointer = $this->streampointer;
         $this->streampointer = null;
+        $this->readable = false;
+        $this->writeable = false;
+        $this->seekable = false;
         return $detachedpointer;
     }
 

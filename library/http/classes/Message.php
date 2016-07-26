@@ -35,7 +35,7 @@ class Message implements MessageInterface
     function __construct(array $inputheaders, string $body, string $version){
 
         // check if message headers are valid
-        if(!is_assoc($inputheaders)){
+        if(!$this->is_assoc($inputheaders)){
             throw new RuntimeException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or ann array of strings");
         }
         else{
@@ -57,7 +57,7 @@ class Message implements MessageInterface
             }
         }
 
-        $streambody = new StreamInterface($body);
+        $streambody = new Stream($body);
 
         $this->headers = $inputheaders;
         $this->body = $streambody;
@@ -194,7 +194,12 @@ class Message implements MessageInterface
         $keys = array_keys($this->headers);
         foreach($keys as $key){
             if(strtolower($name) == strtolower($key)){
-                return implode(",", $this->headers[$key]);
+                if(is_array($this->headers[$key])){
+                    return implode(",", $this->headers[$key]);
+                }
+                else{
+                    return $this->headers[$key];
+                }
             }
         }
 
@@ -219,7 +224,7 @@ class Message implements MessageInterface
     public function withHeader($name, $value)
     {
         $newheader = array( $name => $value);
-        $response = new Message($newheader, $this->messageBody, $this->version);
+        $response = new Message($newheader, $this->messageBody, $this->protocolVersion);
         return $response;
     }
 
@@ -244,7 +249,7 @@ class Message implements MessageInterface
     {
         $newheader = $this->headers;
         $newheader[$name] = $value;
-        $response = new Message($newheader, $this->messageBody, $this->version);
+        $response = new Message($newheader, $this->messageBody, $this->protocolVersion);
         return $response;
     }
 
@@ -264,7 +269,7 @@ class Message implements MessageInterface
     {
         $newheader = $this->headers;
         unset($newheader[$name]);
-        $response = new Message($newheader, $this->messageBody, $this->version);
+        $response = new Message($newheader, $this->messageBody, $this->protocolVersion);
         return $response;
     }
 
@@ -276,7 +281,7 @@ class Message implements MessageInterface
     public function getBody()
     {
         $body = (string) $this->messageBody;
-        $response = new Message($this->headers, $body, $this->version);
+        $response = new Message($this->headers, $body, $this->protocolVersion);
         return $response;
     }
 
@@ -296,7 +301,7 @@ class Message implements MessageInterface
     public function withBody(StreamInterface $body)
     {
         $body = (string) $this->messageBody;
-        $response = new Message($this->headers, $body, $this->version);
+        $response = new Message($this->headers, $body, $this->protocolVersion);
         return $response;
     }
 }
