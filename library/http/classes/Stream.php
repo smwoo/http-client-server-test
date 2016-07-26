@@ -88,7 +88,7 @@ class Stream implements StreamInterface
      */
     private function checkClosed() {
       if (!isset($this->file_handler)) {
-        throw new RuntimeException("Stream is closed.");
+        throw new \RuntimeException("Stream is closed.");
       }
     }
 
@@ -110,7 +110,7 @@ class Stream implements StreamInterface
      * Returns the current position of the file read/write pointer
      *
      * @return int Position of the file pointer
-     * @throws \RuntimeException on error.
+     * @throws \\RuntimeException on error.
      */
     public function tell()
     {
@@ -118,7 +118,7 @@ class Stream implements StreamInterface
 
         $position = ftell($this->streampointer);
         if($position == false){
-            throw new RuntimeException();
+            throw new \RuntimeException();
         }
         else{
             return $position;
@@ -159,7 +159,7 @@ class Stream implements StreamInterface
      *     PHP $whence values for `fseek()`.  SEEK_SET: Set position equal to
      *     offset bytes SEEK_CUR: Set position to current location plus offset
      *     SEEK_END: Set position to end-of-stream plus offset.
-     * @throws \RuntimeException on failure.
+     * @throws \\RuntimeException on failure.
      */
     public function seek($offset, $whence = SEEK_SET)
     {
@@ -170,7 +170,7 @@ class Stream implements StreamInterface
         }
 
         if(fseek($this->streampointer, $offset, $whence) == -1){
-            throw new RuntimeException();
+            throw new \RuntimeException();
         }
     }
 
@@ -182,7 +182,7 @@ class Stream implements StreamInterface
      *
      * @see seek()
      * @see http://www.php.net/manual/en/function.fseek.php
-     * @throws \RuntimeException on failure.
+     * @throws \\RuntimeException on failure.
      */
     public function rewind()
     {
@@ -208,7 +208,7 @@ class Stream implements StreamInterface
      *
      * @param string $string The string that is to be written.
      * @return int Returns the number of bytes written to the stream.
-     * @throws \RuntimeException on failure.
+     * @throws \\RuntimeException on failure.
      */
     public function write($string)
     {
@@ -220,7 +220,7 @@ class Stream implements StreamInterface
 
         $result = fwrite($this->streampointer, $string);
         if($result == false){
-            throw new RuntimeException();
+            throw new \RuntimeException();
         }
         else{
             return $result;
@@ -247,7 +247,7 @@ class Stream implements StreamInterface
      *     call returns fewer bytes.
      * @return string Returns the data read from the stream, or an empty string
      *     if no bytes are available.
-     * @throws \RuntimeException if an error occurs.
+     * @throws \\RuntimeException if an error occurs.
      */
     public function read($length)
     {
@@ -259,7 +259,7 @@ class Stream implements StreamInterface
 
         $readstring = fread($this->streampointer, $length);
         if($readstring == false){
-            throw new RuntimeException();
+            throw new \RuntimeException();
         }
         else{
             return $readstring;
@@ -270,8 +270,8 @@ class Stream implements StreamInterface
      * Returns the remaining contents in a string
      *
      * @return string
-     * @throws \RuntimeException if unable to read.
-     * @throws \RuntimeException if error occurs while reading.
+     * @throws \\RuntimeException if unable to read.
+     * @throws \\RuntimeException if error occurs while reading.
      */
     public function getContents()
     {
@@ -283,7 +283,7 @@ class Stream implements StreamInterface
 
         $readstring = stream_get_contents($this->streampointer);
         if($readstring == false){
-            throw new RuntimeException();
+            throw new \RuntimeException();
         }
         else{
             return $readstring;

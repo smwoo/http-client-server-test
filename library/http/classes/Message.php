@@ -18,6 +18,8 @@ use Psr\Http\Message\StreamInterface as StreamInterface;
  */
 class Message implements MessageInterface
 {
+    const HTTPVER = array("1.0", "1.1");
+
     private $protocolVersion;
     private $headers;
     private $messageBody;
@@ -32,35 +34,40 @@ class Message implements MessageInterface
         return array_keys($keys) !== $keys;
     }
 
-    function __construct(array $inputheaders, string $body, string $version){
+    function __construct(array $inputheaders, StreamInterface $body, $version){
 
         // check if message headers are valid
         if(!$this->is_assoc($inputheaders)){
-            throw new RuntimeException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or ann array of strings");
+            throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
         }
         else{
             $keys = array_keys($inputheaders);
             foreach($keys as $key){
+                if(!is_string($key)){
+                    throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+                }
                 $keyvalue = $inputheaders[$key];
                 if(!is_array($keyvalue)){
                     if(!is_string($keyvalue)){
-                        throw new RuntimeException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or ann array of strings");
+                        throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
                     }
                 }
                 else{
                     foreach($keyvalue as $arrayvalue){
-                        if(!is_string($keyvalue)){
-                            throw new RuntimeException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or ann array of strings");
+                        if(!is_string($arrayvalue)){
+                            throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
                         }
                     }
                 }
             }
         }
 
-        $streambody = new Stream($body);
+        if(!in_array($version, self::HTTPVER)){
+            throw new \InvalidArgumentException("HTTP Protocol Version is not correct");
+        }
 
         $this->headers = $inputheaders;
-        $this->body = $streambody;
+        $this->body = $body;
         $this->protocolVersion = $version;
     }
 
@@ -91,6 +98,11 @@ class Message implements MessageInterface
      */
     public function withProtocolVersion($version)
     {
+
+        if(!in_array($version, self::HTTPVER)){
+            throw new \InvalidArgumentException("HTTP Protocol Version is not correct");
+        }
+
         $response = new Message($this->headers, $this->messageBody, $version);
         return $response;
     }
@@ -122,7 +134,8 @@ class Message implements MessageInterface
      */
     public function getHeaders()
     {
-        return $this->headers;
+        $response = $this->headers;
+        return $response;
     }
 
     /**
@@ -223,6 +236,22 @@ class Message implements MessageInterface
      */
     public function withHeader($name, $value)
     {
+        if(!is_string($name) == 0){
+            throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+        }
+        if(!is_array($value)){
+            if(!is_string($value)){
+                throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+            }
+        }
+        else{
+            foreach($value as $arrayvalue){
+                if(!is_string($arrayvalue)){
+                    throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+                }
+            }
+        }
+
         $newheader = array( $name => $value);
         $response = new Message($newheader, $this->messageBody, $this->protocolVersion);
         return $response;
@@ -247,6 +276,22 @@ class Message implements MessageInterface
      */
     public function withAddedHeader($name, $value)
     {
+        if(!is_string($name) == 0){
+            throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+        }
+        if(!is_array($value)){
+            if(!is_string($value)){
+                throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+            }
+        }
+        else{
+            foreach($value as $arrayvalue){
+                if(!is_string($arrayvalue)){
+                    throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+                }
+            }
+        }
+
         $newheader = $this->headers;
         $newheader[$name] = $value;
         $response = new Message($newheader, $this->messageBody, $this->protocolVersion);
@@ -281,7 +326,7 @@ class Message implements MessageInterface
     public function getBody()
     {
         $body = (string) $this->messageBody;
-        $response = new Message($this->headers, $body, $this->protocolVersion);
+        $response = new Stream($body);
         return $response;
     }
 
@@ -300,7 +345,6 @@ class Message implements MessageInterface
      */
     public function withBody(StreamInterface $body)
     {
-        $body = (string) $this->messageBody;
         $response = new Message($this->headers, $body, $this->protocolVersion);
         return $response;
     }
