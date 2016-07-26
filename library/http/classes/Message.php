@@ -59,9 +59,9 @@ class Message implements MessageInterface
 
         $streambody = new StreamInterface($body);
 
-        $this->$headers = $inputheaders;
-        $this->$body = $streambody;
-        $this->$protocolVersion = $version;
+        $this->headers = $inputheaders;
+        $this->body = $streambody;
+        $this->protocolVersion = $version;
     }
 
     /**
@@ -122,7 +122,7 @@ class Message implements MessageInterface
      */
     public function getHeaders()
     {
-        return $this->$headers;
+        return $this->headers;
     }
 
     /**
@@ -275,7 +275,7 @@ class Message implements MessageInterface
      */
     public function getBody()
     {
-        $body = (string) $this->$messageBody;
+        $body = (string) $this->messageBody;
         $response = new Message($this->headers, $body, $this->version);
         return $response;
     }
@@ -295,7 +295,7 @@ class Message implements MessageInterface
      */
     public function withBody(StreamInterface $body)
     {
-        $body = (string) $this->$messageBody;
+        $body = (string) $this->messageBody;
         $response = new Message($this->headers, $body, $this->version);
         return $response;
     }
