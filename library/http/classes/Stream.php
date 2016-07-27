@@ -16,6 +16,7 @@ class Stream implements StreamInterface
     private $readable;
     private $writeable;
     private $seekable;
+    private $detached;
 
     function __construct($body, $isreadable=true, $iswriteable=true, $isseekable=true){
         $this->streampointer = fopen('php://memory', 'r+');
@@ -24,6 +25,7 @@ class Stream implements StreamInterface
         $this->readable = $isreadable;
         $this->writeable = $iswriteable;
         $this->seekable = $isseekable;
+        $this->detached = false;
     }
 
     /**
@@ -46,8 +48,7 @@ class Stream implements StreamInterface
             return "";
         }
 
-        $offset = ftell($this->streampointer);
-        fseek($this->streampointer, 0);
+        rewind($this->streampointer);
         $stringBody = stream_get_contents($this->streampointer);
         return $stringBody;
     }
@@ -76,10 +77,10 @@ class Stream implements StreamInterface
         $this->checkClosed();
 
         $detachedpointer = $this->streampointer;
-        $this->streampointer = null;
         $this->readable = false;
         $this->writeable = false;
         $this->seekable = false;
+        $this->detached = true;
         return $detachedpointer;
     }
 
@@ -87,7 +88,7 @@ class Stream implements StreamInterface
      * checks if stream is closed and throws error if it is
      */
     private function checkClosed() {
-      if (!isset($this->file_handler)) {
+      if ($this->detached) {
         throw new \RuntimeException("Stream is closed.");
       }
     }
@@ -186,8 +187,6 @@ class Stream implements StreamInterface
      */
     public function rewind()
     {
-        $this->checkClosed();
-
         $this->seek(0);
     }
 

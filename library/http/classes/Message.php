@@ -37,25 +37,27 @@ class Message implements MessageInterface
     function __construct(array $inputheaders, StreamInterface $body, $version){
 
         // check if message headers are valid
-        if(!$this->is_assoc($inputheaders)){
-            throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
-        }
-        else{
-            $keys = array_keys($inputheaders);
-            foreach($keys as $key){
-                if(!is_string($key)){
-                    throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
-                }
-                $keyvalue = $inputheaders[$key];
-                if(!is_array($keyvalue)){
-                    if(!is_string($keyvalue)){
+        if(!empty($inputheaders)){
+            if(!$this->is_assoc($inputheaders)){
+                throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+            }
+            else{
+                $keys = array_keys($inputheaders);
+                foreach($keys as $key){
+                    if(!is_string($key)){
                         throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
                     }
-                }
-                else{
-                    foreach($keyvalue as $arrayvalue){
-                        if(!is_string($arrayvalue)){
+                    $keyvalue = $inputheaders[$key];
+                    if(!is_array($keyvalue)){
+                        if(!is_string($keyvalue)){
                             throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+                        }
+                    }
+                    else{
+                        foreach($keyvalue as $arrayvalue){
+                            if(!is_string($arrayvalue)){
+                                throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+                            }
                         }
                     }
                 }
@@ -67,7 +69,7 @@ class Message implements MessageInterface
         }
 
         $this->headers = $inputheaders;
-        $this->body = $body;
+        $this->messageBody = $body;
         $this->protocolVersion = $version;
     }
 
@@ -179,7 +181,6 @@ class Message implements MessageInterface
                 return $this->headers[$key];
             }
         }
-
         return array();
     }
 
@@ -236,18 +237,18 @@ class Message implements MessageInterface
      */
     public function withHeader($name, $value)
     {
-        if(!is_string($name) == 0){
-            throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+        if(!is_string($name)){
+            throw new \InvalidArgumentException("withHeader:  name must be a string");
         }
         if(!is_array($value)){
             if(!is_string($value)){
-                throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+                throw new \InvalidArgumentException("withHeader: value must be a string or array of strings");
             }
         }
         else{
             foreach($value as $arrayvalue){
                 if(!is_string($arrayvalue)){
-                    throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+                    throw new \InvalidArgumentException("withHeader: value must be a string or array of strings");
                 }
             }
         }
@@ -276,18 +277,18 @@ class Message implements MessageInterface
      */
     public function withAddedHeader($name, $value)
     {
-        if(!is_string($name) == 0){
-            throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+        if(!is_string($name)){
+            throw new \InvalidArgumentException("withAddedHeader:  name must be a string");
         }
         if(!is_array($value)){
             if(!is_string($value)){
-                throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+                throw new \InvalidArgumentException("withAddedHeader: value must be a string or array of strings");
             }
         }
         else{
             foreach($value as $arrayvalue){
                 if(!is_string($arrayvalue)){
-                    throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
+                    throw new \InvalidArgumentException("withAddedHeader: value must be a string or array of strings");
                 }
             }
         }
@@ -325,7 +326,7 @@ class Message implements MessageInterface
      */
     public function getBody()
     {
-        $body = (string) $this->messageBody;
+        $body = (string)$this->messageBody;
         $response = new Stream($body);
         return $response;
     }
