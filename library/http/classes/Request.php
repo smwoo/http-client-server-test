@@ -26,8 +26,33 @@ use \pillr\library\http\Message         as  Message;
  * be implemented such that they retain the internal state of the current
  * message and return an instance that contains the changed state.
  */
+
+
+
 class Request extends Message implements RequestInterface
 {
+    const HTTPMETHODS = array("GET", "HEAD", "POST", "PUT", "\DELETE", "CONNECT", "OPTIONS", "TRACE");
+
+    private $httpMethod;
+    private $uri;
+    private $requestTarget;
+
+    function __construct(array $inputheaders, $body, $version, $method, UriInterface $uri){
+        parent::__construct($inputheaders, $body, $version);
+
+        if(!$this->hasHeader("host") && !empty($this->getHeader("host")) && $uri->getHost() != ""){
+            $this->headers["host"] = $uri->getHost();
+        }
+
+        $this->uri = $uri;
+        $this->httpMethod = $method;
+        if($this->uri->getQuery() == ""){
+            $this->requestTarget = $this->uri->getPath();
+        }
+        else{
+            $this->requestTarget = $this->uri->getPath() . '?' . $this->uri->getQuery();
+        }
+    }
 
 
     /**
@@ -48,7 +73,7 @@ class Request extends Message implements RequestInterface
      */
     public function getRequestTarget()
     {
-
+        return $this->requestTarget;
     }
 
     /**
@@ -70,7 +95,36 @@ class Request extends Message implements RequestInterface
      */
     public function withRequestTarget($requestTarget)
     {
+        $withRequest = new Request($this->headers, $this->getBody(), $this->protocolVersion, $this->httpMethod, $this->uri);
 
+        switch ($requestTarget) {
+            case 'origin':
+                if($withRequest->uri->getQuery() == ""){
+                    $withRequest->requestTarget = $withRequest->uri->getPath();
+                }
+                else{
+                    $withRequest->requestTarget = $withRequest->uri->getPath() . '?' . $withRequest->uri->getQuery();
+                }
+                break;
+
+            case 'absolute':
+                $withRequest->requestTarget = (string)$withRequest->uri;
+                break;
+
+            case 'authority':
+                $withRequest->requestTarget = $withRequest->uri->getAuthority();
+                break;
+
+            case 'asterisk':
+                $withRequest->requestTarget = "*";
+                break;
+
+            default:
+                throw new \InvalidArgumentException("invalid request target");
+                break;
+        }
+
+        return $withRequest;
     }
 
     /**
@@ -80,7 +134,7 @@ class Request extends Message implements RequestInterface
      */
     public function getMethod()
     {
-
+        return $this->httpMethod;
     }
 
     /**
@@ -100,7 +154,13 @@ class Request extends Message implements RequestInterface
      */
     public function withMethod($method)
     {
+        if(!in_array($method, self::HTTPMETHODS)){
+            throw new \InvalidArgumentException("Method not valid");
 
+        }
+
+        $withRequest = new Request($this->headers, $this->messageBody, $this->protocolVersion, $method, $this->uri);
+        return $withRequest;
     }
 
     /**
@@ -114,7 +174,7 @@ class Request extends Message implements RequestInterface
      */
     public function getUri()
     {
-
+        return $this->uri;
     }
 
     /**
@@ -149,8 +209,26 @@ class Request extends Message implements RequestInterface
      */
     public function withUri(UriInterface $uri, $preserveHost = false)
     {
+        $newheaders = $this->getHeaders();
 
+        if($preserveHost){
+            if(!$this->hasHeader("host") && !empty($this->getHeader("host")) && $uri->getHost() != ""){
+                $newheaders["host"] = $uri->getHost();
+            }
+        }
+
+        else{
+            if($uri->getHost() != ""){
+                $newheaders["host"] = $uri->getHost();
+            }
+
+            else{
+                unset($newheaders["host"]);
+            }
+        }
+
+        $withRequest = new Request($newheaders, $this->messageBody, $this->protocolVersion, $this->httpMethod, $uri);
+        return $withRequest;
     }
-
 
 }

@@ -20,9 +20,9 @@ class Message implements MessageInterface
 {
     const HTTPVER = array("1.0", "1.1");
 
-    private $protocolVersion;
-    private $headers;
-    private $messageBody;
+    protected $protocolVersion;
+    protected $headers;
+    protected $messageBody;
 
     private function is_assoc(array $array)
     {
