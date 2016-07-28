@@ -24,7 +24,243 @@ use \Psr\Http\Message\UriInterface as UriInterface;
  */
 class Uri implements UriInterface
 {
-    
+    const SUPPORTEDSCHEMES = array("http", "https");
+
+    private $scheme;
+    private $authority;
+    private $userInfo;
+    private $host;
+    private $port;
+    private $path;
+    private $query;
+    private $fragment;
+
+    // url is composed of scheme + :// + userinfo + @ + hostname + : + port + /|?|# -> path beings with / ends with ?|#
+    //                                                                              -> query begins with ? ends with #
+    //                                                                              -> fragment begins with # and is last in url
+
+    // hostname can consist of literal ip, ipv4 or reg-name
+    // if literal ip, contained within []
+    // if ipv4 or reg domain name then read url until : or / is found
+
+    // authority is userinfo@hostname:port
+    // sometimes port and userinfo is ommited
+
+
+    // useful regexes
+    // ^(.*?): - get scheme
+    // \/{2}(.*?)[/?#\s] - get authority
+    // \/{2}(.*?)@ - get userinfo
+    // (\[.*\]) - get host if ip literal
+    // \/{2}.*@(.*?)[:\s] - get host if not ip literal
+    // :\/{2}.*:(.*?)[\/?#\s] - get port if not ip literal
+    // ]:(.*?)[\/?#\s] - get port if ip literal
+    // \/{2}.*?(\/.*?)[?#\s] - get path with authority
+    // :(.*?)[?#\s] - get path without authority
+    // \?(.*?)[#\s] - get query
+    // \#(.*?)[\s] - get fragment
+
+    function __construct($url){
+        // can't seem to detect end of string so using whitespace instead
+        $url = $url . " ";
+
+        preg_match('/^(.*?):/', $url, $matches);
+        if(empty($matches)){
+            $this->scheme = "";
+        }
+        else{
+            $this->scheme = strtolower($matches[1]);
+        }
+
+        preg_match('/\/{2}(.*?)[\/?#\s]/', $url, $matches);
+        if(empty($matches)){
+            $this->authority = "";
+            $this->userInfo = "";
+            $this->host = "";
+            $this->port = "";
+        }
+        else{
+            $this->authority = $matches[1];
+        }
+
+        if($this->authority != ""){
+            preg_match('/\/{2}.*?(\/.*?)[?#\s]/', $url, $matches);
+            if(empty($matches)){
+                $this->path = "";
+            }
+            else{
+                $this->path = $matches[1];
+            }
+        }
+        else{
+            if($this->scheme != ""){
+                preg_match('/:(.*?)[?#\s]/', $url, $matches);
+                if(empty($matches)){
+                    $this->path = "";
+                }
+                else{
+                    $this->path = $matches[1];
+                }
+            }
+            else{
+                preg_match('/(.*?)[?#\s]/', $url, $matches);
+                if(empty($matches)){
+                    $this->path = "";
+                }
+                else{
+                    $this->path = $matches[1];
+                }
+            }
+        }
+
+        preg_match('/\?(.*?)[#\s]/', $url, $matches);
+        if(empty($matches)){
+            $this->query = "";
+        }
+        else{
+            $this->query = $matches[1];
+        }
+
+        preg_match('/\#(.*?)[\s]/', $url, $matches);
+        if(empty($matches)){
+            $this->fragment = "";
+        }
+        else{
+            $this->fragment = $matches[1];
+        }
+
+        if($this->authority != ""){
+            preg_match('/(^.*)@/', $this->authority . " ", $matches);
+            if(empty($matches)){
+                $this->userInfo = "";
+            }
+            else{
+                $this->userInfo = $matches[1];
+            }
+
+            preg_match('/(\[.*\])/', $this->authority . " ", $matches);
+            if(!empty($matches)){
+                $this->host = $matches[1];
+
+                preg_match('/]:(.*?)\s/', $this->authority . " ", $matches);
+                if(empty($matches)){
+                    $this->port = null;
+                }
+                else{
+                    $this->port = intval($matches[1]);
+                }
+
+            }
+            else{
+                if($this->userInfo != ""){
+                    preg_match('/@(.*?)[:\s]/', $this->authority . " ", $matches);
+                    if(empty($matches)){
+                        $this->host = "";
+                    }
+                    else{
+                        $this->host = $matches[1];
+                    }
+
+                }
+                else{
+                    preg_match('/\/{2}(.*?)[:\s]/', $this->authority . " ", $matches);
+                    if(empty($matches)){
+                        $this->host = "";
+                    }
+                    else{
+                        $this->host = $matches[1];
+                    }
+                }
+
+                preg_match('/.*:(.*?)\s/', $this->authority . " ", $matches);
+                if(empty($matches)){
+                    $this->port = "";
+                }
+                else{
+                    $this->port = intval($matches[1]);
+                }
+            }
+        }
+
+        $this->checkScheme();
+    }
+
+    /*
+     * Private method to create a new instance of Uri from another Uri's members. Useful in the with methods
+    */
+    private function create($newScheme, $newUserInfo, $newHost, $newPort, $newPath, $newQuery, $newFragment){
+        $newUri = new self("");
+
+        $newAuthority = "";
+        if($newUserInfo != ""){
+            $newAuthority = $newAuthority . $newUserInfo . "@";
+        }
+
+
+        if($newHost != ""){
+            $newAuthority = $newAuthority . $newHost;
+        }
+
+
+        if($newPort != ""){
+            $newAuthority = $newAuthority . ":" . $newPort;
+        }
+
+        $newUri->scheme = $newScheme;
+        $newUri->authority = $newAuthority;
+        $newUri->userInfo = $newUserInfo;
+        $newUri->host = $newHost;
+        $newUri->port = $newPort;
+        $newUri->path = $newPath;
+        $newUri->query = $newQuery;
+        $newUri->fragment = $newFragment;
+
+        return $newUri;
+    }
+
+    private function checkScheme(){
+        switch ($this->scheme) {
+            case 'http':
+                $this->checkHttp();
+                break;
+
+            case 'https':
+                $this->checkHttp();
+                break;
+        }
+    }
+
+    /*
+     * Checks http and https scheme standard
+    */
+    private function checkHttp(){
+        // has scheme lowercase
+        // if authority empty
+            // path cannot begin with //
+            //
+        // if authority exists
+            // path must be empty or begin with /
+        // path first segment must not contain semicolon if no scheme
+
+        $hasAuthority = $this->authority != "";
+
+        if($hasAuthority){
+            if(!($this->path[0] == "/" || $this->path == "")){
+                throw new \InvalidArgumentException("path must begin with / or be empty: ". $this->path);
+            }
+        }
+
+        else{
+            if($this->path[0] == "/" && $this->path[1] == "/"){
+                throw new \InvalidArgumentException("path cannot begin with // when no authority exists");
+            }
+        }
+
+        if($this->port == 80){
+            $this->port = null;
+        }
+    }
+
     /**
      * Retrieve the scheme component of the URI.
      *
@@ -41,7 +277,7 @@ class Uri implements UriInterface
      */
     public function getScheme()
     {
-
+        return $this->scheme;
     }
 
     /**
@@ -64,7 +300,7 @@ class Uri implements UriInterface
      */
     public function getAuthority()
     {
-
+        return $this->authority;
     }
 
     /**
@@ -84,7 +320,7 @@ class Uri implements UriInterface
      */
     public function getUserInfo()
     {
-
+        return $this->userInfo;
     }
 
     /**
@@ -100,7 +336,7 @@ class Uri implements UriInterface
      */
     public function getHost()
     {
-
+        return $this->host;
     }
 
     /**
@@ -120,7 +356,7 @@ class Uri implements UriInterface
      */
     public function getPort()
     {
-
+        return $this->port;
     }
 
     /**
@@ -150,7 +386,7 @@ class Uri implements UriInterface
      */
     public function getPath()
     {
-
+        return $this->path;
     }
 
     /**
@@ -175,7 +411,7 @@ class Uri implements UriInterface
      */
     public function getQuery()
     {
-
+        return $this->query;
     }
 
     /**
@@ -196,7 +432,7 @@ class Uri implements UriInterface
      */
     public function getFragment()
     {
-
+        return $this->fragment;
     }
 
     /**
@@ -217,7 +453,20 @@ class Uri implements UriInterface
      */
     public function withScheme($scheme)
     {
+        $scheme = strtolower($scheme);
 
+        if(preg_match('/:/', $scheme)){
+            throw new \InvalidArgumentException("scheme can't contain : char");
+        }
+
+        if(!in_array($scheme, self::SUPPORTEDSCHEMES)){
+            throw new \InvalidArgumentException("scheme not supported");
+        }
+
+        $newUri = $this->create(strtolower($scheme), $this->userInfo, $this->host, $this->port, $this->path, $this->query, $this->fragment);
+
+        $newUri->checkScheme();
+        return $newUri;
     }
 
     /**
@@ -236,7 +485,11 @@ class Uri implements UriInterface
      */
     public function withUserInfo($user, $password = null)
     {
+        $newUserInfo = ($password != null && $user != "") ? $user.":".$password : $user;
+        $newUri = $this->create($this->scheme, $newUserInfo, $this->host, $this->port, $this->path, $this->query, $this->fragment);
 
+        $newUri->checkScheme();
+        return $newUri;
     }
 
     /**
@@ -253,8 +506,20 @@ class Uri implements UriInterface
      */
     public function withHost($host)
     {
+        if(preg_match('/[\[\]]/', $host) && !preg_match('/\[.*\]/', $host)){
+            throw new \InvalidArgumentException("cannot use [] characters unless specifying a literal ip address");
+        }
+        else{
+            if(preg_match('/[\/@:]/', $host)){
+                throw new \InvalidArgumentException("cannot use / @ : characters in a host");
+            }
+        }
+        $newUri = $this->create($this->scheme, $this->userInfo, $host, $this->port, $this->path, $this->query, $this->fragment);
 
+        $newUri->checkScheme();
+        return $newUri;
     }
+
 
     /**
      * Return an instance with the specified port.
@@ -275,8 +540,16 @@ class Uri implements UriInterface
      */
     public function withPort($port)
     {
+        if($port != null && ($port < 0 || $port > 65535)){
+            throw new \InvalidArgumentException("port not within range");
+        }
 
+        $newUri = $this->create($this->scheme, $this->userInfo, $this->host, $port, $this->path, $this->query, $this->fragment);
+
+        $newUri->checkScheme();
+        return $newUri;
     }
+
 
     /**
      * Return an instance with the specified path.
@@ -302,8 +575,12 @@ class Uri implements UriInterface
      */
     public function withPath($path)
     {
+        $newUri = $this->create($this->scheme, $this->userInfo, $this->host, $this->port, $path, $this->query, $this->fragment);
 
+        $newUri->checkScheme();
+        return $newUri;
     }
+
 
     /**
      * Return an instance with the specified query string.
@@ -322,8 +599,16 @@ class Uri implements UriInterface
      */
     public function withQuery($query)
     {
+        if(preg_match('/#/', $query)){
+            throw new \InvalidArgumentException("cannot use # characters in a query");
+        }
 
+        $newUri = $this->create($this->scheme, $this->userInfo, $this->host, $this->port, $this->path, $query, $this->fragment);
+
+        $newUri->checkScheme();
+        return $newUri;
     }
+
 
     /**
      * Return an instance with the specified URI fragment.
@@ -341,8 +626,10 @@ class Uri implements UriInterface
      */
     public function withFragment($fragment)
     {
-
+        $newUri = $this->create($this->scheme, $this->userInfo, $this->host, $this->port, $this->path, $this->query, $fragment);
+        return $newUri;
     }
+
 
     /**
      * Return the string representation as a URI reference.
@@ -369,7 +656,28 @@ class Uri implements UriInterface
      */
     public function __toString()
     {
-        
+        $returnString = "";
+        if($this->scheme != ""){
+            $returnString = $returnString . $this->scheme . ":";
+        }
+
+        if($this->authority != ""){
+            $returnString = $returnString . "//" . $this->authority;
+        }
+
+        if($this->path != ""){
+            $returnString = $returnString . $this->path;
+        }
+
+        if($this->query != ""){
+            $returnString = $returnString . "?" . $this->query;
+        }
+
+        if($this->fragment != ""){
+            $returnString = $returnString . "#" . $this->fragment;
+        }
+
+        return $returnString;
     }
 
 }
