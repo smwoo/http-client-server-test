@@ -77,6 +77,7 @@ class Stream implements StreamInterface
         $this->checkClosed();
 
         $detachedpointer = $this->streampointer;
+        $this->streampointer = null;
         $this->readable = false;
         $this->writeable = false;
         $this->seekable = false;
@@ -145,8 +146,6 @@ class Stream implements StreamInterface
      */
     public function isSeekable()
     {
-        $this->checkClosed();
-
         return $this->seekable;
     }
 
@@ -167,7 +166,7 @@ class Stream implements StreamInterface
         $this->checkClosed();
 
         if(!$this->seekable){
-            throw new Exception("steam is not seekable");
+            throw new \RuntimeException("steam is not seekable");
         }
 
         if(fseek($this->streampointer, $offset, $whence) == -1){
@@ -197,8 +196,6 @@ class Stream implements StreamInterface
      */
     public function isWritable()
     {
-        $this->checkClosed();
-
         return $this->writeable;
     }
 
@@ -214,7 +211,7 @@ class Stream implements StreamInterface
         $this->checkClosed();
 
         if(!$this->writeable){
-            throw new Exception('not a writeable stream');
+            throw new \RuntimeException('not a writeable stream');
         }
 
         $result = fwrite($this->streampointer, $string);
@@ -233,8 +230,6 @@ class Stream implements StreamInterface
      */
     public function isReadable()
     {
-        $this->checkClosed();
-
         return $this->readable;
     }
 
@@ -253,7 +248,7 @@ class Stream implements StreamInterface
         $this->checkClosed();
 
         if(!$this->readable){
-            throw new Exception("not a readable stream");
+            throw new \RuntimeException("not a readable stream");
         }
 
         $readstring = fread($this->streampointer, $length);
@@ -277,7 +272,7 @@ class Stream implements StreamInterface
         $this->checkClosed();
 
         if(!$this->readable){
-            throw new Exception("not a readable stream");
+            throw new \RuntimeException("not a readable stream");
         }
 
         $readstring = stream_get_contents($this->streampointer);
