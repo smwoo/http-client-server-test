@@ -33,9 +33,9 @@ class Request extends Message implements RequestInterface
 {
     const HTTPMETHODS = array("GET", "HEAD", "POST", "PUT", "\DELETE", "CONNECT", "OPTIONS", "TRACE");
 
-    private $httpMethod;
-    private $uri;
-    private $requestTarget;
+    protected $httpMethod;
+    protected $uri;
+    protected $requestTarget;
 
     function __construct(array $inputheaders, $body, $version, $method, UriInterface $uri){
         parent::__construct($inputheaders, $body, $version);
