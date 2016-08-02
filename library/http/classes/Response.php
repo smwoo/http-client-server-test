@@ -28,8 +28,15 @@ class Response extends Message implements ResponseInterface
     private $statusCode;
     private $reason;
 
-    function __construct(array $inputheaders, $body, $version, $code, $reason){
+    function __construct($version, $code, $reason, array $inputheaders, $body){
         parent::__construct($inputheaders, $body, $version);
+
+        if($code == ""){
+            $code = null;
+        }
+        else{
+            $code = intval($code);
+        }
 
         if(!in_array($code, self::VALIDCODES)){
             throw new \InvalidArgumentException("invalid code: ".$code);
@@ -73,7 +80,7 @@ class Response extends Message implements ResponseInterface
      */
     public function withStatus($code, $reasonPhrase = '')
     {
-        $withResponse = new Response($this->getHeaders(), $this->getBody(), $this->getProtocolVersion(), $code, $reasonPhrase);
+        $withResponse = new Response($this->protocolVersion, $code, $reasonPhrase, $this->headers, $this->messageBody);
 
         return $withResponse;
     }

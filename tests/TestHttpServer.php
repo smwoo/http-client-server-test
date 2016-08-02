@@ -29,7 +29,7 @@ class TestHttpServer extends \PHPUnit_Framework_TestCase {
 
         $this->assertEquals(
             $httpRequest->getRequestTarget(),
-            $uri_string
+            '/interns/test?psr=true'
         );
 
         $this->assertEquals(
@@ -42,17 +42,11 @@ class TestHttpServer extends \PHPUnit_Framework_TestCase {
             new Uri($uri_string)
         );
 
+        $withRequest = $httpRequest->withRequestTarget('https://pillrcompany.com/intern/alt');
+
         $this->assertEquals(
-
-            $httpRequest->withRequestTarget('https://pillrcompany.com/intern/alt'),
-            $httpRequest =  new HttpRequest(
-                '1.1',
-                'GET',
-                new Uri('https://pillrcompany.com/intern/alt'),
-                array('Accept' => 'application/json'),
-                ''
-            )
-
+            $withRequest->getRequestTarget(),
+            'https://pillrcompany.com/intern/alt'
         );
 
     }
@@ -83,9 +77,14 @@ class TestHttpServer extends \PHPUnit_Framework_TestCase {
 
         $this->assertEquals($httpResponse->getStatusCode(), '200');
 
+        $withRequest = $httpResponse->withStatus('404', 'Not Found');
         $this->assertEquals(
-            $httpResponse->withStatus('404', 'Not Found'),
-            $httpResponseAlt
+            $withRequest->getStatusCode(),
+            "404"
+        );
+        $this->assertEquals(
+            $withRequest->getReasonPhrase(),
+            "Not Found"
         );
     }
 }

@@ -12,11 +12,11 @@ class TestRequest extends \PHPUnit_Framework_TestCase {
         $testUri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
 
         $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
             "1.0",
             "GET",
-            $testUri
+            $testUri,
+            array(),
+            "Valid Body"
         );
 
         $this->assertEquals(
@@ -35,18 +35,18 @@ class TestRequest extends \PHPUnit_Framework_TestCase {
         );
     }
 
-    public function testAbsoluteWithRequstTarget(){
+    public function testWithRequstTarget(){
         $testUri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
 
         $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
             "1.0",
             "GET",
-            $testUri
+            $testUri,
+            array(),
+            "Valid Body"
         );
 
-        $withRequest = $testRequest->withRequestTarget("absolute");
+        $withRequest = $testRequest->withRequestTarget("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
 
         $this->assertEquals(
             $withRequest->getRequestTarget(),
@@ -54,88 +54,15 @@ class TestRequest extends \PHPUnit_Framework_TestCase {
         );
     }
 
-    public function testOriginWithRequstTarget(){
-        $testUri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
-
-        $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
-            "1.0",
-            "GET",
-            $testUri
-        );
-
-        $withRequest = $testRequest->withRequestTarget("absolute");
-        $withRequest = $withRequest->withRequestTarget("origin");
-
-        $this->assertEquals(
-            $withRequest->getRequestTarget(),
-            "/search/all?q=one%20piece"
-        );
-    }
-
-    public function testAuthorityWithRequstTarget(){
-        $testUri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
-
-        $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
-            "1.0",
-            "GET",
-            $testUri
-        );
-
-        $withRequest = $testRequest->withRequestTarget("authority");
-
-        $this->assertEquals(
-            $withRequest->getRequestTarget(),
-            "userinfo:password@myanimelist.net:8080"
-        );
-    }
-
-    public function testAsteriskWithRequstTarget(){
-        $testUri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
-
-        $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
-            "1.0",
-            "GET",
-            $testUri
-        );
-
-        $withRequest = $testRequest->withRequestTarget("asterisk");
-
-        $this->assertEquals(
-            $withRequest->getRequestTarget(),
-            "*"
-        );
-    }
-
-    public function testFailInvalidWithRequstTarget(){
-        $this->expectException(InvalidArgumentException::class);
-        $testUri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
-
-        $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
-            "1.0",
-            "GET",
-            $testUri
-        );
-
-        $withRequest = $testRequest->withRequestTarget("invalid");
-    }
-
     public function testWithMethod(){
         $testUri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
 
         $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
             "1.0",
             "GET",
-            $testUri
+            $testUri,
+            array(),
+            "Valid Body"
         );
 
         $withRequest = $testRequest->withMethod("POST");
@@ -151,11 +78,11 @@ class TestRequest extends \PHPUnit_Framework_TestCase {
         $testUri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
 
         $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
             "1.0",
             "GET",
-            $testUri
+            $testUri,
+            array(),
+            "Valid Body"
         );
 
         $withRequest = $testRequest->withMethod("invalid");
@@ -166,11 +93,11 @@ class TestRequest extends \PHPUnit_Framework_TestCase {
         $withUri = new Uri("http:search/all?q=one%20piece#extrafragment");
 
         $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
             "1.0",
             "GET",
-            $testUri
+            $testUri,
+            array(),
+            "Valid Body"
         );
 
         $withRequest = $testRequest->withUri($withUri);
@@ -190,11 +117,11 @@ class TestRequest extends \PHPUnit_Framework_TestCase {
         $withUri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
 
         $testRequest = new Request(
-            array(),
-            new Stream("Valid Body"),
             "1.0",
             "GET",
-            $testUri
+            $testUri,
+            array(),
+            "Valid Body"
         );
 
         $withRequest = $testRequest->withUri($withUri);

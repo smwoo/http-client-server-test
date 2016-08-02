@@ -15,6 +15,21 @@ use \Psr\Http\Message\UploadedFileInterface as UploadedFileInterface;
  */
 class UploadedFile implements UploadedFileInterface
 {
+    private $tmpName;
+    private $name;
+    private $size;
+    private $type;
+    private $error;
+    private $moved;
+
+    function __construct($tmpName, $name, $size, $type, $error){
+        $this->tmpName = $tmpName;
+        $this->name = $name;
+        $this->size = $size;
+        $this->type = $type;
+        $this->error = $error;
+        $this->moved = false;
+    }
     /**
      * Retrieve a stream representing the uploaded file.
      *
@@ -33,7 +48,18 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getStream()
     {
+        if($this->moved){
+            throw new \RuntimeException("File has been moved");
+        }
 
+        $file = file_get_contents($this->tmpName);
+
+        if($file == false){
+            throw new \RuntimeException("Unable to read file");
+        }
+
+        $newStream = new Stream($file);
+        return $newStream;
     }
 
     /**
@@ -70,7 +96,17 @@ class UploadedFile implements UploadedFileInterface
      */
     public function moveTo($targetPath)
     {
+        // currently unsure about non-sapi implementation
+        if($this->moved){
+            throw new \RuntimeException("File has already been moved");
+        }
 
+        if(!move_uploaded_file($this->tmpName, $targetPath)){
+            throw new \RuntimeException("Error Moving File");
+        }
+
+        unlink($this->tmpName);
+        $this->moved = true;
     }
 
     /**
@@ -84,7 +120,7 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getSize()
     {
-
+        return $this->size;
     }
 
     /**
@@ -103,7 +139,7 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getError()
     {
-
+        return $this->error;
     }
 
     /**
@@ -121,7 +157,7 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getClientFilename()
     {
-
+        return $this->name;
     }
 
     /**
@@ -139,6 +175,6 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getClientMediaType()
     {
-
+        return $this->type;
     }
 }

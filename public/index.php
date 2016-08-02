@@ -5,3 +5,6 @@ require __DIR__ . '/../vendor/autoload.php';
 
 # TIP: HTTP headers are printed natively in PHP by invoking header().
 #      Ex. header('Content-Type', 'text/html');
+
+use \pillr\library\http\
+

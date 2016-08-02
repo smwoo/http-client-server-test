@@ -9,11 +9,11 @@ class TestRequest extends \PHPUnit_Framework_TestCase {
 
     public function testConstructAndGet(){
         $testRequest = new Response(
-            array(),
-            new Stream("Valid Body"),
             "1.0",
             "200",
-            "OK"
+            "OK",
+            array(),
+            "Valid Body"
         );
 
         $this->assertEquals(
@@ -29,11 +29,11 @@ class TestRequest extends \PHPUnit_Framework_TestCase {
 
     public function testWithStatus(){
         $testRequest = new Response(
-            array(),
-            new Stream("Valid Body"),
             "1.0",
             "200",
-            "OK"
+            "OK",
+            array(),
+            "Valid Body"
         );
 
         $withRequest = $testRequest->withStatus("404", "Not Found");
@@ -52,11 +52,11 @@ class TestRequest extends \PHPUnit_Framework_TestCase {
     public function testFailInvalidCodeWithStatus(){
         $this->expectException(InvalidArgumentException::class);
         $testRequest = new Response(
-            array(),
-            new Stream("Valid Body"),
             "1.0",
             "200",
-            "OK"
+            "OK",
+            array(),
+            "Valid Body"
         );
 
         $withRequest = $testRequest->withStatus("asdf", "asdfasdf");

@@ -44,6 +44,101 @@ use \pillr\library\http\Request              as Request;
  */
 class ServerRequest extends Request implements ServerRequestInterface
 {
+    private $server;
+    private $cookies;
+    private $files;
+    private $get;
+    private $attribute;
+    private $post;
+
+    function __construct(){
+        $headers = getallheaders();
+        $body = file_get_contents('php://input');
+        if($body == false){
+            $body = "";
+        }
+        $version = explode('/', $_SERVER["SERVER_PROTOCOL"])[1];
+        $method = $_SERVER["REQUEST_METHOD"];
+        $uri = getUriFromGlobals();
+
+        parent::construct($headers, $body, $version, $method, $uri);
+
+        $this->get = $_GET;
+        $this->cookies = $_COOKIE;
+
+        $this->files = array();
+        $this->post = $_POST;
+        $this->server = $_SERVER;
+
+        $files = $_FILES;
+        $filePointer = $files;
+
+        while(count($filePointer) == 1){
+            $key = array_keys($filePointer)[0];
+            $filePointer = $filePointer[$key]
+        }
+
+        $psrFileFormat = array();
+        $numberOfFiles = count($filePointer['name']);
+        for($i = 0; $i < $numberOfFiles; $i++){
+            array_push($psrFileFormat,
+                       new UploadedFile($metadataArray['tmp_name'][$i],
+                                        $metadataArray['name'][$i],
+                                        $metadataArray['size'][$i],
+                                        $metadataArray['type'][$i],
+                                        $metadataArray['error'][$i]
+                                       )
+            );
+        }
+        $filePointer = $psrFileFormat;
+        $this->files = $files;
+    }
+
+    private function getUriFromGlobals(){
+        $uri = new Uri("");
+
+        if(isset($_SERVER["HTTPS"])){
+            $uri = $uri->withScheme("https");
+        }
+        else{
+            $uri = $uri->withScheme("http");
+        }
+
+        if(isset($_SERVER['HTTP_HOST'])){
+            $uri = $uri->withHost($_SERVER['HTTP_HOST']);
+        }
+        elseif(isset($_SERVER['SERVER_NAME'])){
+            $uri = $uri->withHost($_SERVER['SERVER_NAME']);
+        }
+
+        if(isset($_SERVER["PHP_AUTH_USER"])){
+            $user = $_SERVER["PHP_AUTH_USER"];
+
+            if(isset($_SERVER["PHP_AUTH_PW"])){
+                $pass = $_SERVER["PHP_AUTH_PW"];
+            }
+            else{
+                $pass = "";
+            }
+
+            $uri = $uri->withUserInfo($user, $pass);
+        }
+
+        if(isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != "80"){
+            $uri = $uri->withPort($_SERVER['SERVER_PORT']);
+        }
+
+        if(isset($_SERVER['PATH_INFO'])){
+            $uri = $uri->withPath($_SERVER['PATH_INFO']);
+        }
+
+        if(isset($_SERVER['QUERY_STRING'])){
+            $uri = $uri->withQuery($_SERVER['QUERY_STRING']);
+        }
+
+        return $uri;
+    }
+
 
     /**
      * Retrieve server parameters.
@@ -56,7 +151,7 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function getServerParams()
     {
-
+        return $this->server;
     }
 
     /**
@@ -71,7 +166,7 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function getCookieParams()
     {
-
+        return $this->cookies;
     }
 
     /**
@@ -93,7 +188,10 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function withCookieParams(array $cookies)
     {
+        $withRequest = clone $this;
+        $withRequest->cookies = $cookies;
 
+        return $withRequest;
     }
 
     /**
@@ -110,7 +208,7 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function getQueryParams()
     {
-
+        return $this->get;
     }
 
     /**
@@ -137,7 +235,10 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function withQueryParams(array $query)
     {
+        $withRequest = clone $this);
+        $withRequest->get = $query;
 
+        return $withRequest;
     }
 
     /**
@@ -154,7 +255,7 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function getUploadedFiles()
     {
-
+        return $this->files;
     }
 
     /**
@@ -168,9 +269,13 @@ class ServerRequest extends Request implements ServerRequestInterface
      * @return self
      * @throws \InvalidArgumentException if an invalid structure is provided.
      */
+
     public function withUploadedFiles(array $uploadedFiles)
     {
+        $withRequest = clone $this;
+        $withRequest->files = $uploadedFiles;
 
+        return $withRequest;
     }
 
     /**
@@ -190,7 +295,7 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function getParsedBody()
     {
-
+        return $this->post;
     }
 
     /**
@@ -223,7 +328,10 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function withParsedBody($data)
     {
+        $withRequest = clone $this;
+        $withRequest->post = $data;
 
+        return $withRequest;
     }
 
     /**
@@ -239,7 +347,7 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function getAttributes()
     {
-
+        return $this->attributes;
     }
 
     /**
@@ -259,7 +367,13 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function getAttribute($name, $default = null)
     {
-
+        $attributes = $this->attributes;
+        if(array_key_exists($name, $attributes)){
+            return $attributes[$name];
+        }
+        else{
+            return $default;
+        }
     }
 
     /**
@@ -279,7 +393,10 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function withAttribute($name, $value)
     {
+        $withRequest = clone $this;
+        $withRequest->attributes[$name] = $value;
 
+        return $withRequest;
     }
 
     /**
@@ -298,6 +415,9 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function withoutAttribute($name)
     {
+        $withRequest = clone $this;
+        unset($withRequest->attributes[$name]);
 
+        return $withRequest;
     }
 }

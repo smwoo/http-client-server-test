@@ -37,7 +37,7 @@ class Request extends Message implements RequestInterface
     protected $uri;
     protected $requestTarget;
 
-    function __construct(array $inputheaders, $body, $version, $method, UriInterface $uri){
+    function __construct($version, $method, UriInterface $uri, array $inputheaders, $body){
         parent::__construct($inputheaders, $body, $version);
 
         if(!$this->hasHeader("host") && !empty($this->getHeader("host")) && $uri->getHost() != ""){
@@ -95,34 +95,9 @@ class Request extends Message implements RequestInterface
      */
     public function withRequestTarget($requestTarget)
     {
-        $withRequest = new Request($this->headers, $this->getBody(), $this->protocolVersion, $this->httpMethod, $this->uri);
+        $withRequest = new Request($this->protocolVersion, $this->httpMethod, $this->uri, $this->headers, $this->getBody());
 
-        switch ($requestTarget) {
-            case 'origin':
-                if($withRequest->uri->getQuery() == ""){
-                    $withRequest->requestTarget = $withRequest->uri->getPath();
-                }
-                else{
-                    $withRequest->requestTarget = $withRequest->uri->getPath() . '?' . $withRequest->uri->getQuery();
-                }
-                break;
-
-            case 'absolute':
-                $withRequest->requestTarget = (string)$withRequest->uri;
-                break;
-
-            case 'authority':
-                $withRequest->requestTarget = $withRequest->uri->getAuthority();
-                break;
-
-            case 'asterisk':
-                $withRequest->requestTarget = "*";
-                break;
-
-            default:
-                throw new \InvalidArgumentException("invalid request target");
-                break;
-        }
+        $withRequest->requestTarget = $requestTarget;
 
         return $withRequest;
     }
@@ -159,7 +134,7 @@ class Request extends Message implements RequestInterface
 
         }
 
-        $withRequest = new Request($this->headers, $this->messageBody, $this->protocolVersion, $method, $this->uri);
+        $withRequest = new Request($this->protocolVersion, $method, $this->uri, $this->headers, $this->messageBody);
         return $withRequest;
     }
 
@@ -227,7 +202,7 @@ class Request extends Message implements RequestInterface
             }
         }
 
-        $withRequest = new Request($newheaders, $this->messageBody, $this->protocolVersion, $this->httpMethod, $uri);
+        $withRequest = new Request($this->protocolVersion, $this->httpMethod, $uri, $newheaders, $this->messageBody);
         return $withRequest;
     }
 

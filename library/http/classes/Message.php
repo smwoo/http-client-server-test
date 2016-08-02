@@ -34,7 +34,7 @@ class Message implements MessageInterface
         return array_keys($keys) !== $keys;
     }
 
-    function __construct(array $inputheaders, StreamInterface $body, $version){
+    function __construct(array $inputheaders, $body, $version){
 
         // check if message headers are valid
         if(!empty($inputheaders)){
@@ -69,7 +69,7 @@ class Message implements MessageInterface
         }
 
         $this->headers = $inputheaders;
-        $this->messageBody = $body;
+        $this->messageBody = new Stream($body);
         $this->protocolVersion = $version;
     }
 

@@ -50,6 +50,51 @@ class TestUri extends \PHPUnit_Framework_TestCase {
         );
     }
 
+    public function testEmptyConstructAndGet(){
+        $uri = new Uri("");
+
+        $this->assertEquals(
+            $uri->getScheme(),
+            ""
+        );
+
+        $this->assertEquals(
+            $uri->getAuthority(),
+            ""
+        );
+
+
+        $this->assertEquals(
+            $uri->getUserInfo(),
+            ""
+        );
+
+        $this->assertEquals(
+            $uri->getHost(),
+            ""
+        );
+
+        $this->assertEquals(
+            $uri->getPort(),
+            null
+        );
+
+        $this->assertEquals(
+            $uri->getPath(),
+            ""
+        );
+
+        $this->assertEquals(
+            $uri->getQuery(),
+            ""
+        );
+
+        $this->assertEquals(
+            $uri->getFragment(),
+            ""
+        );
+    }
+
     public function testWithScheme(){
         $uri = new Uri("http://userinfo:password@myanimelist.net:8080/search/all?q=one%20piece#extrafragment");
 
