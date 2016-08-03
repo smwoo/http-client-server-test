@@ -31,7 +31,7 @@ date_default_timezone_set("UTC");
 $incomingRequest = new ServerRequest();
 
 $returnResponse = new Response("1.1", "200", "OK", [], "");
-$bodyArray = array("@id" => $incomingRequest->getUri(),
+$bodyArray = array("@id" => (string)$incomingRequest->getUri(),
                    "to" => "Pillr",
                    "subject" => "Hello Pillr",
                    "message" => "Here is my submission.",
