@@ -80,8 +80,12 @@ class Response extends Message implements ResponseInterface
      */
     public function withStatus($code, $reasonPhrase = '')
     {
-        $withResponse = new Response($this->protocolVersion, $code, $reasonPhrase, $this->headers, $this->messageBody);
-
+        if(!in_array($code, self::VALIDCODES)){
+            throw new \InvalidArgumentException("not a valid code");
+        }
+        $withResponse = clone $this;
+        $withResponse->statusCode = $code;
+        $withResponse->reason = $reasonPhrase;
         return $withResponse;
     }
 

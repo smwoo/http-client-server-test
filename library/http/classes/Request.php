@@ -95,7 +95,7 @@ class Request extends Message implements RequestInterface
      */
     public function withRequestTarget($requestTarget)
     {
-        $withRequest = new Request($this->protocolVersion, $this->httpMethod, $this->uri, $this->headers, $this->getBody());
+        $withRequest = clone $this;
 
         $withRequest->requestTarget = $requestTarget;
 
@@ -134,7 +134,8 @@ class Request extends Message implements RequestInterface
 
         }
 
-        $withRequest = new Request($this->protocolVersion, $method, $this->uri, $this->headers, $this->messageBody);
+        $withRequest = clone $this;
+        $withRequest->httpMethod = $method;
         return $withRequest;
     }
 
@@ -202,7 +203,9 @@ class Request extends Message implements RequestInterface
             }
         }
 
-        $withRequest = new Request($this->protocolVersion, $this->httpMethod, $uri, $newheaders, $this->messageBody);
+        $withRequest = clone $this;
+        $withRequest->headers = $newheaders;
+        $withRequest->uri = $uri;
         return $withRequest;
     }
 

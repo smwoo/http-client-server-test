@@ -183,5 +183,5 @@ interface MessageInterface
      * @return self
      * @throws \InvalidArgumentException When the body is not valid.
      */
-    public function withBody(StreamInterface $body);
+    public function withBody($body);
 }

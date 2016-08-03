@@ -245,14 +245,18 @@ class Uri implements UriInterface
         $hasAuthority = $this->authority != "";
 
         if($hasAuthority){
-            if(!($this->path[0] == "/" || $this->path == "")){
-                throw new \InvalidArgumentException("path must begin with / or be empty: ". $this->path);
+            if(!empty($this->path)){
+                if(!($this->path[0] == "/")){
+                    throw new \InvalidArgumentException("path must begin with / or be empty: ". $this->path);
+                }
             }
         }
 
         else{
-            if($this->path[0] == "/" && $this->path[1] == "/"){
-                throw new \InvalidArgumentException("path cannot begin with // when no authority exists");
+            if(!empty($this->path)){
+                if($this->path[0] == "/" && $this->path[1] == "/"){
+                    throw new \InvalidArgumentException("path cannot begin with // when no authority exists");
+                }
             }
         }
 

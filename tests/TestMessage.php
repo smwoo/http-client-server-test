@@ -10,7 +10,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
     public function testConstructAndGet(){
         $testMessage = new Message(
             array("host" => array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -49,7 +49,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
 
         $testMessage = new Message(
             array(1 => array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
     }
@@ -59,7 +59,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
 
         $testMessage = new Message(
             array(array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
     }
@@ -69,7 +69,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
 
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo", 123)),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
     }
@@ -77,7 +77,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
     public function testWithProtocolVersion(){
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -94,7 +94,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
 
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -109,7 +109,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
     public function testWithHeader(){
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -126,7 +126,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
 
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -138,7 +138,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
 
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -148,7 +148,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
     public function testWithAddedHeader(){
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -165,7 +165,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
 
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -177,7 +177,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
 
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -187,7 +187,7 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
     public function testWithOutHeader(){
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
@@ -202,11 +202,11 @@ class TestMessage extends \PHPUnit_Framework_TestCase {
     public function testWithBody(){
         $testMessage = new Message(
             array("host" =>array("example.com", "additionalInfo")),
-            new Stream("Valid Body"),
+            "Valid Body",
             "1.0"
         );
 
-        $withMessage = $testMessage->withBody(new Stream("New Body"));
+        $withMessage = $testMessage->withBody("New Body");
 
         $this->assertEquals(
             $withMessage->getBody(),

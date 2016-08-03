@@ -51,7 +51,7 @@ class ServerRequest extends Request implements ServerRequestInterface
     private $attribute;
     private $post;
 
-    function __construct(){
+    function __construct($attributes = []){
         $headers = getallheaders();
         $body = file_get_contents('php://input');
         if($body == false){
@@ -59,38 +59,39 @@ class ServerRequest extends Request implements ServerRequestInterface
         }
         $version = explode('/', $_SERVER["SERVER_PROTOCOL"])[1];
         $method = $_SERVER["REQUEST_METHOD"];
-        $uri = getUriFromGlobals();
+        $uri = $this->getUriFromGlobals();
 
-        parent::construct($headers, $body, $version, $method, $uri);
+        parent::__construct($version, $method, $uri, $headers, $body);
 
         $this->get = $_GET;
         $this->cookies = $_COOKIE;
-
-        $this->files = array();
         $this->post = $_POST;
         $this->server = $_SERVER;
+        $this->attributes = $attributes;
 
         $files = $_FILES;
-        $filePointer = $files;
+        if(!empty($files)){
+            $filePointer = $files;
 
-        while(count($filePointer) == 1){
-            $key = array_keys($filePointer)[0];
-            $filePointer = $filePointer[$key]
-        }
+            while(count($filePointer) == 1){
+                $key = array_keys($filePointer)[0];
+                $filePointer = $filePointer[$key];
+            }
 
-        $psrFileFormat = array();
-        $numberOfFiles = count($filePointer['name']);
-        for($i = 0; $i < $numberOfFiles; $i++){
-            array_push($psrFileFormat,
-                       new UploadedFile($metadataArray['tmp_name'][$i],
-                                        $metadataArray['name'][$i],
-                                        $metadataArray['size'][$i],
-                                        $metadataArray['type'][$i],
-                                        $metadataArray['error'][$i]
-                                       )
-            );
+            $psrFileFormat = array();
+            $numberOfFiles = count($filePointer['name']);
+            for($i = 0; $i < $numberOfFiles; $i++){
+                array_push($psrFileFormat,
+                           new UploadedFile($metadataArray['tmp_name'][$i],
+                                            $metadataArray['name'][$i],
+                                            $metadataArray['size'][$i],
+                                            $metadataArray['type'][$i],
+                                            $metadataArray['error'][$i]
+                                           )
+                );
+            }
+            $filePointer = $psrFileFormat;
         }
-        $filePointer = $psrFileFormat;
         $this->files = $files;
     }
 
@@ -235,7 +236,7 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function withQueryParams(array $query)
     {
-        $withRequest = clone $this);
+        $withRequest = clone $this;
         $withRequest->get = $query;
 
         return $withRequest;

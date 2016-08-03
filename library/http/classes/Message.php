@@ -105,7 +105,8 @@ class Message implements MessageInterface
             throw new \InvalidArgumentException("HTTP Protocol Version is not correct");
         }
 
-        $response = new Message($this->headers, $this->messageBody, $version);
+        $response = clone $this;
+        $response->protocolVersion = $version;
         return $response;
     }
 
@@ -253,8 +254,8 @@ class Message implements MessageInterface
             }
         }
 
-        $newheader = array( $name => $value);
-        $response = new Message($newheader, $this->messageBody, $this->protocolVersion);
+        $response = clone $this;
+        $response->headers = array($name => $value);
         return $response;
     }
 
@@ -293,9 +294,8 @@ class Message implements MessageInterface
             }
         }
 
-        $newheader = $this->headers;
-        $newheader[$name] = $value;
-        $response = new Message($newheader, $this->messageBody, $this->protocolVersion);
+        $response = clone $this;
+        $response->headers[$name] = $value;
         return $response;
     }
 
@@ -313,9 +313,8 @@ class Message implements MessageInterface
      */
     public function withoutHeader($name)
     {
-        $newheader = $this->headers;
-        unset($newheader[$name]);
-        $response = new Message($newheader, $this->messageBody, $this->protocolVersion);
+        $response = clone $this;
+        unset($response->headers[$name]);
         return $response;
     }
 
@@ -344,9 +343,10 @@ class Message implements MessageInterface
      * @return self
      * @throws \InvalidArgumentException When the body is not valid.
      */
-    public function withBody(StreamInterface $body)
+    public function withBody($body)
     {
-        $response = new Message($this->headers, $body, $this->protocolVersion);
+        $response = clone $this;
+        $response->messageBody = new Stream($body);
         return $response;
     }
 }
