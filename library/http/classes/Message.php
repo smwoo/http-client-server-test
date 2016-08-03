@@ -37,32 +37,7 @@ class Message implements MessageInterface
     function __construct(array $inputheaders, $body, $version){
 
         // check if message headers are valid
-        if(!empty($inputheaders)){
-            if(!$this->is_assoc($inputheaders)){
-                throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
-            }
-            else{
-                $keys = array_keys($inputheaders);
-                foreach($keys as $key){
-                    if(!is_string($key)){
-                        throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
-                    }
-                    $keyvalue = $inputheaders[$key];
-                    if(!is_array($keyvalue)){
-                        if(!is_string($keyvalue)){
-                            throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
-                        }
-                    }
-                    else{
-                        foreach($keyvalue as $arrayvalue){
-                            if(!is_string($arrayvalue)){
-                                throw new \InvalidArgumentException("header parameter is incorrect, make sure it is an assosciative array with each key being the header name and each value being a string or an array of strings");
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        $this->checkHeadersValid($inputheaders);
 
         if(!in_array($version, self::HTTPVER)){
             throw new \InvalidArgumentException("HTTP Protocol Version is not correct");
@@ -71,6 +46,35 @@ class Message implements MessageInterface
         $this->headers = $inputheaders;
         $this->messageBody = new Stream($body);
         $this->protocolVersion = $version;
+    }
+
+    private function checkHeadersValid($inputheaders){
+        if(!empty($inputheaders)){
+            if(!$this->is_assoc($inputheaders)){
+                throw new \InvalidArgumentException("header must be an assosciative array");
+            }
+            else{
+                $keys = array_keys($inputheaders);
+                foreach($keys as $key){
+                    if(!is_string($key)){
+                        throw new \InvalidArgumentException("header must have string keys");
+                    }
+                    $keyvalue = $inputheaders[$key];
+                    if(!is_array($keyvalue)){
+                        if(!is_string($keyvalue)){
+                            throw new \InvalidArgumentException("header key => value must have string value");
+                        }
+                    }
+                    else{
+                        foreach($keyvalue as $arrayvalue){
+                            if(!is_string($arrayvalue)){
+                                throw new \InvalidArgumentException("each value in the array of key => value must be a string");
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

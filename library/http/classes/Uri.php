@@ -64,6 +64,7 @@ class Uri implements UriInterface
         // can't seem to detect end of string so using whitespace instead
         $url = $url . " ";
 
+        // regex to find a scheme in a url by finding first match between beginning and :
         preg_match('/^(.*?):/', $url, $matches);
         if(empty($matches)){
             $this->scheme = "";
@@ -72,6 +73,7 @@ class Uri implements UriInterface
             $this->scheme = strtolower($matches[1]);
         }
 
+        // regex to find authority. match is between // and either /#? or end of line
         preg_match('/\/{2}(.*?)[\/?#\s]/', $url, $matches);
         if(empty($matches)){
             $this->authority = "";
@@ -83,6 +85,7 @@ class Uri implements UriInterface
             $this->authority = $matches[1];
         }
 
+        // regex to find path if authority isnt empty. necessary since the // from authority interfere with the / from path
         if($this->authority != ""){
             preg_match('/\/{2}.*?(\/.*?)[?#\s]/', $url, $matches);
             if(empty($matches)){
@@ -92,6 +95,7 @@ class Uri implements UriInterface
                 $this->path = $matches[1];
             }
         }
+        // without authority find after : in scheme
         else{
             if($this->scheme != ""){
                 preg_match('/:(.*?)[?#\s]/', $url, $matches);
@@ -113,6 +117,7 @@ class Uri implements UriInterface
             }
         }
 
+        // reqex to find query based on / and # or end of string
         preg_match('/\?(.*?)[#\s]/', $url, $matches);
         if(empty($matches)){
             $this->query = "";
@@ -121,6 +126,7 @@ class Uri implements UriInterface
             $this->query = $matches[1];
         }
 
+        // regex to find fragment based on # and end of string
         preg_match('/\#(.*?)[\s]/', $url, $matches);
         if(empty($matches)){
             $this->fragment = "";
@@ -129,7 +135,9 @@ class Uri implements UriInterface
             $this->fragment = $matches[1];
         }
 
+        // if authority exists get userinfo, host and port
         if($this->authority != ""){
+            // find user info based on @ and beginning of authority
             preg_match('/(^.*)@/', $this->authority . " ", $matches);
             if(empty($matches)){
                 $this->userInfo = "";
@@ -138,10 +146,12 @@ class Uri implements UriInterface
                 $this->userInfo = $matches[1];
             }
 
+            // if ipliteral get everything inbetween []
             preg_match('/(\[.*\])/', $this->authority . " ", $matches);
             if(!empty($matches)){
                 $this->host = $matches[1];
 
+                // get port number as everything after a ]: since ipliteral contains :
                 preg_match('/]:(.*?)\s/', $this->authority . " ", $matches);
                 if(empty($matches)){
                     $this->port = null;
@@ -151,6 +161,7 @@ class Uri implements UriInterface
                 }
 
             }
+            // if not ipliteral and userinfo exists, host is between @ and : or end of string
             else{
                 if($this->userInfo != ""){
                     preg_match('/@(.*?)[:\s]/', $this->authority . " ", $matches);
@@ -162,6 +173,7 @@ class Uri implements UriInterface
                     }
 
                 }
+                // if no userinfo then host is between // and : or end of string
                 else{
                     preg_match('/\/{2}(.*?)[:\s]/', $this->authority . " ", $matches);
                     if(empty($matches)){
@@ -172,6 +184,7 @@ class Uri implements UriInterface
                     }
                 }
 
+                // get port as everything after a : if : exists
                 preg_match('/.*:(.*?)\s/', $this->authority . " ", $matches);
                 if(empty($matches)){
                     $this->port = "";
